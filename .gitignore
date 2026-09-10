@@ -1,0 +1,19 @@
+node_modules
+dist
+
+# --- the plaintext record and the password never get committed ---
+content.json
+password.txt
+
+# --- belt and braces: nothing from the Vault export, ever ---
+# (the export lives one directory up and is outside this repo, but if anyone
+#  ever copies files in here, git must refuse to pick them up)
+*.mbox
+*.eml
+*.csv
+*.xml
+*.mbox.*
+comed.com_or_comed*
+derived/
+eml/
+.DS_Store
