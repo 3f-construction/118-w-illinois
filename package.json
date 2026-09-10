@@ -8,7 +8,8 @@
     "data": "cd .. && python3 derived/build_site_data.py && python3 derived/build_content.py && cd site && node scripts/encrypt.mjs",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "rotate": "node scripts/encrypt.mjs --new"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

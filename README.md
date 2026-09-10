@@ -10,9 +10,15 @@ Lofts, built for building ownership. React + Vite, deployed to GitHub Pages.
 This is a static site, so there is no server to check a password against. Instead the
 record itself is encrypted and **the password is the decryption key**:
 
-- `content.json` (the timeline, the analysis, and the full text of all 47 emails) is
-  encrypted with AES-256-GCM into `public/data.enc`. The key is derived from the password
-  with PBKDF2-SHA256, 310,000 iterations.
+- `../private/content.json` (the timeline, the analysis, and the full text of all 47
+  emails) is encrypted with AES-256-GCM into `public/data.enc`. The key is derived from the
+  password with PBKDF2-SHA256, 310,000 iterations.
+- Generated passwords carry **80 bits** of CSPRNG entropy (16 characters from a 32-symbol
+  alphabet, formatted `XXXX-XXXX-XXXX-XXXX`). Since `data.enc` is public, the password is
+  the only thing standing between an attacker and the record — a memorable-but-small
+  passphrase is not good enough here. Custom passwords under 16 characters are refused.
+- The password is **never printed** by the tooling and never appears in CI logs. Read it
+  from `../private/password.txt` (mode 600).
 - Only `data.enc` is published. The JavaScript bundle contains no email text, no names and
   no analysis — View Source shows nothing but ciphertext.
 - The browser derives the key from what you type and tries to decrypt. Wrong password =
@@ -31,9 +37,9 @@ private — the encryption, not the URL, is the protection.
 
 ## Updating the record
 
-The plaintext source (`content.json`) and the password (`password.txt`) are **gitignored
-and never leave the workstation**. They are rebuilt from the Google Vault export, which
-lives one directory above this repo and is deliberately outside it.
+The plaintext source and the password live in **`../private/`** — outside this repository
+and outside the directory the dev server serves, so `npm run dev` cannot hand them to a
+browser. They are rebuilt from the Google Vault export, which also lives outside this repo.
 
 ```bash
 # 1. rebuild content.json from the Vault export, then re-encrypt
@@ -54,7 +60,9 @@ export is searched and parsed.
 ## Changing the password
 
 ```bash
-npm run encrypt -- "new access password"   # rewrites password.txt and public/data.enc
+npm run rotate                            # generate a fresh 80-bit password
+# ...or set a specific one (16+ characters):
+npm run encrypt -- "a long passphrase you chose"
 npm run build
 git add public/data.enc && git commit -m "Rotate access password" && git push
 ```
@@ -69,7 +77,9 @@ npm run dev        # http://localhost:5173
 ```
 
 `npm run dev` needs `public/data.enc` to exist — run `npm run encrypt` first if you have
-`content.json`, or just work against the committed `data.enc` with the current password.
+`../private/content.json`, or work against the committed `data.enc` with the current
+password. The dev server is configured with `server.fs.strict` and deny rules so it will
+not serve `content.json`, `password.txt` or anything under `private/` even by accident.
 
 ## Deployment
 

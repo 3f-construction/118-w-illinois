@@ -2,8 +2,12 @@ node_modules
 dist
 
 # --- the plaintext record and the password never get committed ---
+# (they now live in ../private/, outside this repo and outside the dev-server
+#  web root; these rules still apply if a copy is ever dropped in here)
 content.json
 password.txt
+private/
+*.key
 
 # --- belt and braces: nothing from the Vault export, ever ---
 # (the export lives one directory up and is outside this repo, but if anyone

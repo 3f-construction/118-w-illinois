@@ -27,7 +27,7 @@ export default function ActivityBand({ band }) {
     <svg
       viewBox={`0 0 ${W} 132`}
       role="img"
-      aria-label="Contact with ComEd from November 2024 to September 2026. Three dormant periods of 92, 107 and 97 days account for 296 of the 673 days."
+      aria-label={band.ariaLabel}
     >
       {band.segments.map(([a, b, kind, label], i) => {
         const x0 = x(a)

@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-const SIDE_LABEL = {
-  comed: 'ComEd', '3f': '3F Construction', design: 'Architect / MEP',
-  owner: 'Owner / Monroe', trade: 'Switch Electric',
-}
-
-export default function EmailModal({ event, onClose, onPrev, onNext, index, total }) {
+export default function EmailModal({ event, ui, onClose, onPrev, onNext, index, total }) {
   const closeRef = useRef(null)
   const bodyRef = useRef(null)
   const restoreTo = useRef(null)
@@ -67,7 +62,7 @@ export default function EmailModal({ event, onClose, onPrev, onNext, index, tota
 
         <div className="sheet-foot">
           <span>
-            {SIDE_LABEL[event.side]} · from the Vault export of {event.mailbox}
+            {ui.sideLabels[event.side]} · {ui.provenance} {event.mailbox}
             {event.holders.length > 1 && ` (+${event.holders.length - 1} other mailbox${event.holders.length > 2 ? 'es' : ''})`}
           </span>
           <span className="navbtns">

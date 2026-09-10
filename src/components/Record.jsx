@@ -2,18 +2,11 @@ import { useMemo, useState } from 'react'
 import ActivityBand from './ActivityBand.jsx'
 import EmailModal from './EmailModal.jsx'
 
-const SIDE_LABEL = {
-  comed: 'ComEd', '3f': '3F Construction', design: 'Architect / MEP',
-  owner: 'Owner / Monroe', trade: 'Switch Electric',
-}
-const FILTERS = [
-  ['all', 'All events'], ['comed', 'ComEd'], ['3f', '3F Construction'],
-  ['design', 'Architect & MEP'], ['owner', 'Owner / Monroe'], ['trade', 'Switch Electric'],
-]
 const html = (s) => ({ __html: s })
 
 export default function Record({ content, onLock }) {
-  const { meta, metrics, band, gaps, gapNote, phases, events, roles, panels, footer } = content
+  const { ui, meta, metrics, band, gaps, gapNote, phases, events, roles, panels, footer } = content
+  const SIDE_LABEL = ui.sideLabels
   const [filter, setFilter] = useState('all')
   const [openId, setOpenId] = useState(null)
 
@@ -57,16 +50,16 @@ export default function Record({ content, onLock }) {
 
       <section>
         <div className="sec-head">
-          <h2>Where the 673 days went</h2>
-          <div className="note">contact with ComEd, by month</div>
+          <h2>{ui.sections.band[0]}</h2>
+          <div className="note">{ui.sections.band[1]}</div>
         </div>
         <div className="band">
-          <div className="bandhint">Swipe the chart sideways →</div>
+          <div className="bandhint">{ui.bandHint}</div>
           <ActivityBand band={band} />
           <div className="legend">
-            <span><i style={{ background: 'var(--comed)' }} />Active correspondence with ComEd</span>
-            <span><i style={{ background: 'var(--gc)' }} />Application prepared internally, no ComEd contact yet</span>
-            <span><i style={{ background: 'var(--alarm)', opacity: 0.35 }} />Dormant — no contact in either direction</span>
+            {band.legend.map(([color, opacity, label]) => (
+              <span key={label}><i style={{ background: color, opacity }} />{label}</span>
+            ))}
           </div>
         </div>
         <div className="gaps">
@@ -82,12 +75,12 @@ export default function Record({ content, onLock }) {
 
       <section>
         <div className="sec-head">
-          <h2>The record</h2>
-          <div className="note">{events.length} events · open any entry to read the original email</div>
+          <h2>{ui.sections.record[0]}</h2>
+          <div className="note">{ui.sections.record[1].replace('{n}', events.length)}</div>
         </div>
 
         <div className="filters" role="group" aria-label="Filter the record by party">
-          {FILTERS.map(([key, label]) => (
+          {ui.filters.map(([key, label]) => (
             <button
               key={key} className="chip" aria-pressed={filter === key}
               onClick={() => setFilter(key)}
@@ -98,7 +91,7 @@ export default function Record({ content, onLock }) {
           <span className="count">{shown.length} of {events.length} shown</span>
         </div>
 
-        {shown.length === 0 && <p className="empty">No events for this party.</p>}
+        {shown.length === 0 && <p className="empty">{ui.emptyFilter}</p>}
 
         {phases.map((ph, pi) => {
           const evs = shown.filter((e) => e.phase === pi)
@@ -130,7 +123,7 @@ export default function Record({ content, onLock }) {
                     <div className="meta">
                       <span className="subj">{e.subject}</span>
                       <button className="gm" onClick={() => setOpenId(e.id)}>
-                        Read the email →
+                        {ui.readEmail}
                       </button>
                       {e.att.length > 0 && (
                         <span className="att"><b>Attached:</b> {e.att.join(', ')}</span>
@@ -146,13 +139,13 @@ export default function Record({ content, onLock }) {
 
       <section>
         <div className="sec-head">
-          <h2>Who did what</h2>
-          <div className="note">by volume of ComEd-facing email in the export</div>
+          <h2>{ui.sections.roles[0]}</h2>
+          <div className="note">{ui.sections.roles[1]}</div>
         </div>
         <div className="rolewrap">
           <table className="roles">
             <thead>
-              <tr><th>Person</th><th>Role</th><th>What the record shows</th></tr>
+              <tr>{ui.rolesHead.map((h) => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {roles.map(([name, addr, role, what]) => (
@@ -168,7 +161,7 @@ export default function Record({ content, onLock }) {
       </section>
 
       <section>
-        <div className="sec-head"><h2>What to do with this</h2></div>
+        <div className="sec-head"><h2>{ui.sections.actions[0]}</h2></div>
         <div className="cols">
           {panels.map(([title, items]) => (
             <div className="panel" key={title}>
@@ -188,6 +181,7 @@ export default function Record({ content, onLock }) {
       {openIdx >= 0 && (
         <EmailModal
           event={shown[openIdx]}
+          ui={ui}
           index={openIdx}
           total={shown.length}
           onClose={() => setOpenId(null)}
