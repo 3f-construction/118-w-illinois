@@ -61,6 +61,7 @@ export default function Record({ content, onLock }) {
           <div className="note">contact with ComEd, by month</div>
         </div>
         <div className="band">
+          <div className="bandhint">Swipe the chart sideways →</div>
           <ActivityBand band={band} />
           <div className="legend">
             <span><i style={{ background: 'var(--comed)' }} />Active correspondence with ComEd</span>

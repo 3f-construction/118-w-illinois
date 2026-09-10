@@ -46,8 +46,9 @@ npm run build && npm run preview
 git add public/data.enc && git commit -m "Update record" && git push
 ```
 
-`npm run data` runs `../derived/build_content.py`, which reads `derived/messages.json`
-(the parsed project emails) and `derived/site_events.json`. See `../CLAUDE.md` for how the
+`npm run data` runs `../derived/build_site_data.py` then `../derived/build_content.py`,
+which read `derived/messages.json` (the parsed project emails) and the extracted `.eml`
+files. See `../CLAUDE.md` for how the
 export is searched and parsed.
 
 ## Changing the password
