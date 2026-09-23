@@ -24,8 +24,11 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PRIVATE = resolve(ROOT, '..', 'private')
-const CONTENT = resolve(PRIVATE, 'content.json')
-const PW_FILE = resolve(PRIVATE, 'password.txt')
+// Which record this build encrypts. Defaults to the full ownership record; the
+// comed branch sets these to the filtered, ComEd-facing variant so the two have
+// separate plaintext AND separate passwords.
+const CONTENT = resolve(PRIVATE, process.env.RECORD_CONTENT || 'content.json')
+const PW_FILE = resolve(PRIVATE, process.env.RECORD_PASSWORD || 'password.txt')
 
 const ITERATIONS = 310000 // PBKDF2-SHA256
 const MIN_CUSTOM_LENGTH = 16

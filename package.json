@@ -1,15 +1,15 @@
 {
-  "name": "boylston-comed-record",
+  "name": "boylston-comed-record-external",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "encrypt": "node scripts/encrypt.mjs",
-    "data": "cd .. && python3 derived/build_site_data.py && python3 derived/build_content.py && cd site && node scripts/encrypt.mjs",
+    "encrypt": "RECORD_CONTENT=content-comed.json RECORD_PASSWORD=password-comed.txt node scripts/encrypt.mjs",
+    "data": "cd .. && python3 derived/build_content_comed.py && cd site && npm run encrypt",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "rotate": "node scripts/encrypt.mjs --new"
+    "rotate": "RECORD_CONTENT=content-comed.json RECORD_PASSWORD=password-comed.txt node scripts/encrypt.mjs --new"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
