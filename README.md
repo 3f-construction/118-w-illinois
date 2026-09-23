@@ -1,102 +1,78 @@
-# 118 & 120 W Illinois — ComEd service record
+# 118 & 120 W Illinois — ComEd service record (ComEd-facing version)
 
-A password-gated, single-page record of the ComEd permanent-service effort at Boylston
-Lofts, built for building ownership. React + Vite, deployed to GitHub Pages.
+A password-gated, single-page record of the ComEd permanent-service effort at
+118–120 W Illinois Street, prepared for disclosure to ComEd. React + Vite, deployed to
+GitHub Pages.
 
-**Live:** https://3f-construction.github.io/118-w-illinois/
+**This is the external, filtered version of the record.** The ownership version is a
+separate repository with a separate Pages site and a separate password. Nothing here
+links to it, and the two ciphertexts share no key.
+
+## What this version contains
+
+- **92 dated entries**, 3 Jul 2025 – 8 Sep 2026.
+- **66 messages reproduced in full** — every message on which ComEd was a sender or a
+  recipient. The remaining entries stay in the chronology and state plainly that they
+  are not reproduced.
+- **No interpretation.** The analysis written for the ownership record is removed, and
+  headings are factual.
+
+It mirrors `comed-production/` in the working repository, which produces the PDF of the
+same record. Both take their headings from `derived/neutral-headings.json`, so the site
+and the PDF cannot drift apart.
+
+### Figures are recomputed, not inherited
+
+Every number is measured against the 66 produced messages, so ComEd can check each one
+against the entries either side of it:
+
+| | |
+|---|---|
+| Intervals with no correspondence | 92 / 108 / 97 days — 297 in total |
+| SR# 06667834 to end of record | 432 days |
+| Switchgear approval to end of record | 384 days |
+| Messages to ComEd : from ComEd | 45 : 21 |
+
+Two figures in the ownership record were off by one and are corrected here: the second
+interval is 108 days (5 Dec 2025 → 23 Mar 2026, not 107), and the switchgear span is
+384 days (not 383).
 
 ## How the password works
 
-This is a static site, so there is no server to check a password against. Instead the
-record itself is encrypted and **the password is the decryption key**:
+The record itself is encrypted and **the password is the decryption key**:
 
-- `../private/content.json` (the timeline, the analysis, and the full text of all 47
-  emails) is encrypted with AES-256-GCM into `public/data.enc`. The key is derived from the
-  password with PBKDF2-SHA256, 310,000 iterations.
-- Generated passwords carry **80 bits** of CSPRNG entropy (16 characters from a 32-symbol
-  alphabet, formatted `XXXX-XXXX-XXXX-XXXX`). Since `data.enc` is public, the password is
-  the only thing standing between an attacker and the record — a memorable-but-small
-  passphrase is not good enough here. Custom passwords under 16 characters are refused.
-- The password is **never printed** by the tooling and never appears in CI logs. Read it
-  from `../private/password.txt` (mode 600).
-- Only `data.enc` is published. The JavaScript bundle contains no email text, no names and
-  no analysis — View Source shows nothing but ciphertext.
-- The browser derives the key from what you type and tries to decrypt. Wrong password =
-  the decryption fails; there is no "password check" to bypass.
-- The derived key is kept in `sessionStorage`, so a refresh does not re-prompt but closing
-  the tab locks it again. "Lock this record" clears it immediately.
+- `../private/content-comed.json` is encrypted with AES-256-GCM into `public/data.enc`.
+  The key is derived with PBKDF2-SHA256, 310,000 iterations.
+- The password carries **80 bits** of CSPRNG entropy. Since `data.enc` is public, the
+  password is the only thing protecting the record.
+- It is **never printed** by the tooling and never appears in CI logs. Read it from
+  `../private/password-comed.txt` (mode 600).
+- Only `data.enc` is published. The JavaScript bundle contains no email text, no names
+  and no analysis.
 
-The deliberate cost of PBKDF2 (~0.1–0.3s per attempt) is what makes guessing impractical.
+This version's password does **not** decrypt the ownership record, and the ownership
+password does not decrypt this one.
 
 ### What this does *not* protect against
 
 Anyone with the password can share it, and anyone who downloads `data.enc` keeps a copy
 they can decrypt later if they learn the password. Rotate the password (below) if it
-circulates further than intended. A GitHub Pages URL is public even when the repository is
-private — the encryption, not the URL, is the protection.
+circulates further than intended. A GitHub Pages URL is public even when the repository
+is private — the encryption, not the URL, is the protection.
 
 ## Updating the record
 
-The plaintext source and the password live in **`../private/`** — outside this repository
-and outside the directory the dev server serves, so `npm run dev` cannot hand them to a
-browser. They are rebuilt from the Google Vault export, which also lives outside this repo.
+The plaintext and the password live in **`../private/`**, outside this repository:
 
-```bash
-# 1. rebuild content.json from the Vault export, then re-encrypt
-npm run data
-
-# 2. rebuild the site and check it locally
-npm run build && npm run preview
-
-# 3. publish — pushing to main deploys via GitHub Actions
-git add public/data.enc && git commit -m "Update record" && git push
+```sh
+npm run data      # rebuild content-comed.json from the export, then re-encrypt
+npm run rotate    # issue a fresh password and re-encrypt
+npm run build     # produce dist/
 ```
 
-`npm run data` runs `../derived/build_site_data.py` then `../derived/build_content.py`,
-which read `derived/messages.json` (the parsed project emails) and the extracted `.eml`
-files. See `../CLAUDE.md` for how the
-export is searched and parsed.
+`npm run data` runs `derived/build_content_comed.py`, which applies the filtering and
+recomputes every figure from the produced set. Do not hand-edit `content-comed.json` —
+it is generated.
 
-## Changing the password
-
-```bash
-npm run rotate                            # generate a fresh 80-bit password
-# ...or set a specific one (16+ characters):
-npm run encrypt -- "a long passphrase you chose"
-npm run build
-git add public/data.enc && git commit -m "Rotate access password" && git push
-```
-
-Everyone with the old password loses access to the newly published file at that point.
-
-## Local development
-
-```bash
-npm install
-npm run dev        # http://localhost:5173
-```
-
-`npm run dev` needs `public/data.enc` to exist — run `npm run encrypt` first if you have
-`../private/content.json`, or work against the committed `data.enc` with the current
-password. The dev server is configured with `server.fs.strict` and deny rules so it will
-not serve `content.json`, `password.txt` or anything under `private/` even by accident.
-
-## Deployment
-
-`.github/workflows/deploy.yml` builds on every push to `main` and deploys to GitHub Pages.
-It needs no secrets: `data.enc` is already ciphertext and is committed. The workflow fails
-the build if any readable project content is detected in the bundle.
-
-One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-
-## Layout
-
-```
-src/unlock.js               PBKDF2 + AES-GCM; the only thing standing between the
-                            visitor and the record
-src/components/Gate.jsx     password screen
-src/components/Record.jsx   the record: title block, metrics, timeline, roles, findings
-src/components/EmailModal.jsx  original email viewer (headers, body, quoted thread)
-src/components/ActivityBand.jsx  the 673-day activity chart
-scripts/encrypt.mjs         content.json -> public/data.enc
-```
+Commit `public/data.enc` and push; the workflow deploys it. CI needs no secrets, because
+the plaintext and the password never leave the workstation.
